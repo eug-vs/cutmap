@@ -1,32 +1,21 @@
 import itertools
+import numpy
 
 
 class Detail:
-    def __init__(self, width, height):
-        if width > height:
-            self.w = width
-            self.h = height
+    def __init__(self, a, b):
+        if a > b:
+            self.a = a
+            self.b = b
         else:
-            self.w = height
-            self.h = width
+            self.a = b
+            self.b = a
 
     def __str__(self):
-        return f'({self.w} x {self.h})'
+        return f'({self.a} x {self.b})'
 
     def __repr__(self):
         return str(self)
-
-
-def flatten(D):
-    """
-    :param D: Collection of unique types. Type is a list of identical Details.
-    :return: Generator of all Details.
-    """
-    result = []
-    for type in D:
-        for detail in type:
-            result.append(detail)
-    return result
 
 
 def diff(lst, sub):
@@ -45,13 +34,37 @@ def diff(lst, sub):
 
 def R(D):
     """
-    :param D: Collection of unique types. Type is a list of identical Details.
+    :param D: Collection of Details.
     :return: Generator of all possible splits into 2 sub-collections.
     """
-    flat = flatten(D)
-    for left_size in range(1, int(len(flat) / 2) + 1):
-        for i in itertools.combinations(flat, left_size):
-            yield i, diff(flat, i)
+    for left_size in range(1, int(len(D) / 2) + 1):
+        for i in itertools.combinations(D, left_size):
+            yield i, diff(D, i)
+
+
+def table_repr(func):
+    """
+    Wraps the function so it's evaluated at every X point and
+    represented as a stair-step function as a numpy-table.
+    """
+    def wrapper(D):
+        table = numpy.array([[], []], dtype='int')
+        maximum = 0
+        max_b = 0
+        for detail in D:
+            maximum += detail.a
+            if detail.b > max_b:
+                max_b = detail.b
+        for x in range(max_b, maximum):
+            result = func(x, D)
+            if table.size:
+                last_column = table[:, len(table[0])-1]
+            if not table.size or result != last_column[1]:
+                column = numpy.array([[x], [result]])
+                table = numpy.append(table, column, axis=1)
+            if result == max_b:
+                return table
+    return wrapper
 
 
 def f_vertical(x, D):
@@ -59,7 +72,13 @@ def f_vertical(x, D):
     This is the same as function f(x, D), but it assumes that the first
     guillotine cut is vertical.
     """
-    pass
+    minimum = None
+    for D1, D2 in R(D):
+        for z in range(int(x/2)+1):
+            m = max(f(z, D1), f(x - z, D2))
+            if not minimum or m < minimum:
+                minimum = m
+    return minimum
 
 
 def f_horizontal(x, D):
@@ -67,19 +86,34 @@ def f_horizontal(x, D):
     This is the same as function f(x, D), but it assumes that the first
     guillotine cut is horizontal.
     """
-    pass
+    minimum = None
+    for D1, D2 in R(D):
+        m = f(x, D1) + f(x, D2)
+        if not minimum or m < minimum:
+            minimum = m
+    return minimum
 
 
 def f(x, D):
     """
     :param x: Width of the strip.
-    :param D: Collection of unique types. Type is a list of identical Details.
+    :param D: Collection of Details.
     :return: Minimum height (y) of the strip of width x, which is enough
     for guillotine allocation for collection D.
     """
-
-    # If collection D has exactly one Detail, return its height
-    if len(D) == 1 and len(D[0]) == 1:
-        return D[0][0].height
+    max_b = 0
+    for detail in D:
+        if detail.b > max_b:
+            max_b = detail.b
+    if max_b > x:
+        return 100000
+    elif len(D) == 1:
+        if D[0].a <= x:
+            return D[0].b
+        else:
+            return D[0].a
     else:
         return min(f_vertical(x, D), f_horizontal(x, D))
+
+
+GAF = table_repr(f)
