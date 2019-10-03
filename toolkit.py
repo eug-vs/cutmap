@@ -117,3 +117,193 @@ def f(x, D):
 
 
 GAF = table_repr(f)
+
+
+def Num(d1, d2):
+    return 0
+
+
+class Entry:
+    def __init__(self, x, y, r, N):
+        self.x = x
+        self.y = y
+        self.r = r
+        self.N = N
+
+    def __str__(self):
+        return f'{self.x} {self.y} {self.r} {self.N}'
+
+
+class EGAF:
+    def __init__(self, D, entries):
+        self.D = D
+        self.entries = entries
+
+    def n(self):
+        return len(self.entries)
+
+    def __getitem__(self, item):
+        return self.entries[item]
+
+    def __setitem__(self, key, value):
+        self.entries[key] = value
+        return value
+
+    def add_entry(self, entry):
+        self.entries.append(entry)
+
+
+class Operator:
+    def __init__(self, EGAF1, EGAF2):
+        self.f1 = EGAF1
+        self.f2 = EGAF2
+        self.f = EGAF([], [])
+        self.n1, self.n2 = self.f1.n(), self.f2.n()
+        self.i1, self.i2, self.i = 1, 1, 1
+
+    def sum(self):
+        while self.c1() or self.c2() or self.c3() or self.c4():
+            if self.c1() and self.c2():
+                if self.c5():
+                    self.a1()
+                else:
+                    if self.c6():
+                        self.a2()
+                    else:
+                        self.a3()
+            if self.c1() and not self.c2():
+                if self.c4():
+                    if self.c5():
+                        self.a4()
+                    else:
+                        if self.c6():
+                            self.a2()
+                        else:
+                            self.a3()
+                else:
+                    self.a4()
+            if not self.c1() and self.c2():
+                if self.c3():
+                    if self.c5():
+                        self.a1()
+                    else:
+                        if self.c6():
+                            self.a5()
+                        else:
+                            self.a3()
+                else:
+                    self.a5()
+            else:
+                if self.c3() and self.c4():
+                    if self.c5():
+                        self.a4()
+                    else:
+                        if self.c6():
+                            self.a5()
+                        else:
+                            self.a3()
+                elif self.c3() and not self.c4():
+                    self.a4()
+                elif not self.c3() and self.c4():
+                    self.a5()
+
+    def c1(self):
+        return self.i1 == 1
+
+    def c2(self):
+        return self.i2 == 1
+
+    def c3(self):
+        return self.i1 <= self.n1
+
+    def c4(self):
+        return self.i2 <= self.n2
+
+    def c5(self):
+        return self.f1[self.i1].x < self.f2[self.i2].x
+
+    def c6(self):
+        return self.f1[self.i1].x > self.f2[self.i2].x
+
+    def c7(self):
+        return self.f1[self.i1].y < self.f2[self.i2].y
+
+    def c8(self):
+        return self.f1[self.i1].y > self.f2[self.i2].y
+
+    def a1(self):
+        self.i1 += 1
+
+    def a2(self):
+        self.i2 += 1
+
+    def a3(self):
+        self.f[self.i].x = self.f1[self.i1].x
+        self.f[self.i].y = self.f1[self.i1].y + self.f2[self.i2].y
+        self.f[self.i].r = self.f1[self.i1].y
+        self.f[self.i].N = Num(self.f1.D, self.f2.D)  # ????
+        self.i1 += 1
+        self.i2 += 1
+        self.i += 1
+
+    def a4(self):
+        self.f[self.i].x = self.f1[self.i1].x
+        self.f[self.i].y = self.f1[self.i1].y + self.f2[self.i2 - 1].y
+        self.f[self.i].r = self.f1[self.i1].y
+        self.f[self.i].N = Num(self.f1.D, self.f2.D)  # ????
+        self.i1 += 1
+        self.i += 1
+
+    def a5(self):
+        self.f[self.i].x = self.f2[self.i2].x
+        self.f[self.i].y = self.f1[self.i1 - 1].y + self.f2[self.i2].y
+        self.f[self.i].r = self.f1[self.i1 - 1].y
+        self.f[self.i].N = Num(self.f1.D, self.f2.D)  # ????
+        self.i2 += 1
+        self.i += 1
+
+    def b1(self):
+        self.f[self.i].x = self.f1[self.i1].x
+        self.f[self.i].y = self.f1[self.i1].y
+        self.f[self.i].r = self.f1[self.i1].r
+        self.f[self.i].N = self.f1[self.i1].N
+        self.i += 1
+        self.i1 += 1
+
+    def b2(self):
+        self.f[self.i].x = self.f1[self.i1].x
+        self.f[self.i].y = self.f1[self.i1].y
+        self.f[self.i].r = self.f1[self.i1].r
+        self.f[self.i].N = self.f1[self.i1].N
+        self.i += 1
+        self.i1 += 1
+        maximum = 0
+        for k in range(self.n2):
+            if self.f2[k].y >= self.f[self.i].y:
+                maximum = k
+        self.i2 = maximum + 1
+
+    def b3(self):
+        self.f[self.i].x = self.f2[self.i2].x
+        self.f[self.i].y = self.f2[self.i2].y
+        self.f[self.i].r = self.f2[self.i2].r
+        self.f[self.i].N = self.f2[self.i2].N
+        self.i += 1
+        self.i2 += 1
+
+    def b4(self):
+        self.f[self.i].x = self.f2[self.i2].x
+        self.f[self.i].y = self.f2[self.i2].y
+        self.f[self.i].r = self.f2[self.i2].r
+        self.f[self.i].N = self.f2[self.i2].N
+        self.i += 1
+        self.i2 += 1
+        maximum = 0
+        for k in range(self.n1):
+            if self.f1[k].y >= self.f[self.i].y:
+                maximum = k
+        self.i1 = maximum + 1
+
+    def b5(self):
+        self.b1()
+        self.i2 += 1
