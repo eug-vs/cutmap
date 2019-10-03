@@ -207,6 +207,34 @@ class Operator:
                 elif not self.c3() and self.c4():
                     self.a5()
 
+    def minimum(self):
+        while self.c3() or self.c4():
+            if self.c3() and self.c4():
+                if self.c5():
+                    if self.c8():
+                        self.b1()
+                    else:
+                        self.b2()
+                else:
+                    if self.c6():
+                        if self.c7():
+                            self.b3()
+                        else:
+                            self.b4()
+                    else:
+                        if self.c7():
+                            self.b2()
+                        else:
+                            if self.c8():
+                                self.b4()
+                            else:
+                                self.b5()
+            else:
+                if self.c3():
+                    self.b1()
+                elif self.c4():
+                    self.b2()
+
     def c1(self):
         return self.i1 == 1
 
