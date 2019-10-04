@@ -71,7 +71,6 @@ class Instruction:
             print('\t' * level + str(self.second))
 
 
-
 def diff(lst, sub):
     """
     :param lst: List
@@ -94,31 +93,6 @@ def R(D):
     for left_size in range(1, int(len(D) / 2) + 1):
         for i in itertools.combinations(D, left_size):
             yield i, diff(D, i)
-
-
-def table_repr(func):
-    """
-    Wraps the function so it's evaluated at every X point and
-    represented as a stair-step function as a numpy-table.
-    """
-    def wrapper(D):
-        table = numpy.array([[], []], dtype='int')
-        maximum = 0
-        max_b = 0
-        for detail in D:
-            maximum += detail.a
-            if detail.b > max_b:
-                max_b = detail.b
-        for x in range(max_b, maximum):
-            result = func(x, D)
-            if table.size:
-                last_column = table[:, len(table[0])-1]
-            if not table.size or result != last_column[1]:
-                column = numpy.array([[x], [result]])
-                table = numpy.append(table, column, axis=1)
-            if result == max_b:
-                return table
-    return wrapper
 
 
 def f_vertical(x, D, C):
@@ -191,6 +165,3 @@ def f(x, D, C):
             return vertical, v_slices
         else:
             return horizontal, h_slices
-
-
-GAF = table_repr(f)
