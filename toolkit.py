@@ -19,14 +19,22 @@ class Detail:
 
 
 class Vector:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, *args):
+        if args:
+            assert len(args) == 2, "Wrong args"
+            self.x = args[0]
+            self.y = args[1]
+        else:
+            self.x = 0
+            self.y = 0
 
     def __add__(self, other):
         return Vector(self.x + other.x, self.y + other.y)
 
-        
+    def __str__(self):
+        return f'({self.x}, {self.y})'
+
+
 def diff(lst, sub):
     """
     :param lst: List
@@ -76,7 +84,7 @@ def table_repr(func):
     return wrapper
 
 
-def f_vertical(x, D):
+def f_vertical(x, D, C):
     """
     This is the same as function f(x, D), but it assumes that the first
     guillotine cut is vertical.
@@ -84,29 +92,30 @@ def f_vertical(x, D):
     minimum = None
     for D1, D2 in R(D):
         for z in range(int(x/2)+1):
-            m = max(f(z, D1), f(x - z, D2))
+            m = max(f(z, D1, C), f(x - z, D2, C))
             if not minimum or m < minimum:
                 minimum = m
     return minimum
 
 
-def f_horizontal(x, D):
+def f_horizontal(x, D, C):
     """
     This is the same as function f(x, D), but it assumes that the first
     guillotine cut is horizontal.
     """
     minimum = None
     for D1, D2 in R(D):
-        m = f(x, D1) + f(x, D2)
+        m = f(x, D1, C) + f(x, D2, C)
         if not minimum or m < minimum:
             minimum = m
     return minimum
 
 
-def f(x, D):
+def f(x, D, C=Vector()):
     """
     :param x: Width of the strip.
     :param D: Collection of Details.
+    :param C: Vector object - left-bottom point of the strip.
     :return: Minimum height (y) of the strip of width x, which is enough
     for guillotine allocation for collection D.
     """
@@ -122,7 +131,7 @@ def f(x, D):
         else:
             return D[0].a
     else:
-        return min(f_vertical(x, D), f_horizontal(x, D))
+        return min(f_vertical(x, D, C), f_horizontal(x, D, C))
 
 
 GAF = table_repr(f)
