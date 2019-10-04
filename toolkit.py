@@ -43,6 +43,9 @@ class Slice:
     def __str__(self):
         return f'Slice at {self.point} in {self.direction} direction.'
 
+    def __repr__(self):
+        return str(self)
+
 
 def diff(lst, sub):
     """
@@ -99,18 +102,19 @@ def f_vertical(x, D, C):
     guillotine cut is vertical.
     """
     minimum = None
-    slice = None
+    slices = None
     for D1, D2 in R(D):
         for z in range(int(x/2)+1):
-            left = f(z, D1, C)
+            left, l_slices = f(z, D1, C)
             point = C + Vector(z, 0)
-            right = f(x - z, D2, point)
+            right, r_slices = f(x - z, D2, point)
             m = max(left, right)
             if not minimum or m < minimum:
                 minimum = m
-                slice = Slice(point, 'vertical')
-    print(slice)
-    return minimum
+                slices = l_slices
+                slices.append(Slice(point, 'vertical'))
+                slices += r_slices
+    return minimum, slices
 
 
 def f_horizontal(x, D, C):
@@ -119,20 +123,21 @@ def f_horizontal(x, D, C):
     guillotine cut is horizontal.
     """
     minimum = None
-    slice = None
+    slices = None
     for D1, D2 in R(D):
-        down = f(x, D1, C)
-        point = C + Vector(0, down)
-        up = f(x, D2, point)
-        m = down + up
+        bottom, b_slices = f(x, D1, C)
+        point = C + Vector(0, bottom)
+        top, t_slices = f(x, D2, point)
+        m = bottom + top
         if not minimum or m < minimum:
             minimum = m
-            slice = Slice(point, 'horizontal')
-    print(slice)
-    return minimum
+            slices = b_slices
+            slices.append(Slice(point, 'horizontal'))
+            slices += t_slices
+    return minimum, slices
 
 
-def f(x, D, C=Vector()):
+def f(x, D, C):
     """
     :param x: Width of the strip.
     :param D: Collection of Details.
@@ -145,14 +150,29 @@ def f(x, D, C=Vector()):
         if detail.b > max_b:
             max_b = detail.b
     if max_b > x:
-        return 100000
+        return 100000, []
     elif len(D) == 1:
+        slices = []
         if D[0].a <= x:
-            return D[0].b
+            if D[0].a < x:
+                #slices.append(Slice(C + Vector(D[0].a, 0), 'vertical'))
+                pass
+            #slices.append(Slice(C + Vector(0, D[0].b), 'horizontal'))
+            return D[0].b, slices
         else:
-            return D[0].a
+            if D[0].b < x:
+                #slices.append(Slice(C + Vector(D[0].b, 0), 'vertical'))
+                pass
+            #slices.append(Slice(C + Vector(0, D[0].a), 'horizontal'))
+            return D[0].a, slices
     else:
-        return min(f_vertical(x, D, C), f_horizontal(x, D, C))
+        vertical, v_slices = f_vertical(x, D, C)
+        horizontal, h_slices = f_horizontal(x, D, C)
+        # Finding minimum
+        if vertical < horizontal:
+            return vertical, v_slices
+        else:
+            return horizontal, h_slices
 
 
 GAF = table_repr(f)
