@@ -41,10 +41,35 @@ class Slice:
         self.direction = direction
 
     def __str__(self):
-        return f'Slice at {self.point} in {self.direction} direction.'
+        return f'{self.direction} slice at {self.point}'
 
     def __repr__(self):
         return str(self)
+
+
+class Instruction:
+    def __init__(self, slice, first, second):
+        self.slice = slice
+        self.first = first
+        self.second = second
+        if self.slice:
+            self.dir1 = 'Bottom' if self.slice.direction == 'horizontal' else 'Left'
+            self.dir2 = 'Up' if self.slice.direction == 'horizontal' else 'Right'
+
+    def report(self, level=0):
+        if self.slice:
+            print('\t' * level + str(self.slice))
+
+            print('\t' * (level + 1) + self.dir1 + ' part:')
+            self.first.report(level=level+2)
+
+            print('\t' * (level + 1) + self.dir2 + ' part:')
+            self.second.report(level=level+2)
+        else:
+            print('\t' * level + 'It is a detail!')
+            print('\t' * level + str(self.first))
+            print('\t' * level + str(self.second))
+
 
 
 def diff(lst, sub):
@@ -111,9 +136,7 @@ def f_vertical(x, D, C):
             m = max(left, right)
             if not minimum or m < minimum:
                 minimum = m
-                slices = l_slices
-                slices.append(Slice(point, 'vertical'))
-                slices += r_slices
+                slices = Instruction(Slice(point, 'vertical'), l_slices, r_slices)
     return minimum, slices
 
 
@@ -131,9 +154,7 @@ def f_horizontal(x, D, C):
         m = bottom + top
         if not minimum or m < minimum:
             minimum = m
-            slices = b_slices
-            slices.append(Slice(point, 'horizontal'))
-            slices += t_slices
+            slices = Instruction(Slice(point, 'horizontal'), b_slices, t_slices)
     return minimum, slices
 
 
@@ -150,20 +171,17 @@ def f(x, D, C):
         if detail.b > max_b:
             max_b = detail.b
     if max_b > x:
-        return 100000, []
+        return 100000, Instruction(None, None, None)
     elif len(D) == 1:
-        slices = []
         if D[0].a <= x:
-            if D[0].a < x:
-                #slices.append(Slice(C + Vector(D[0].a, 0), 'vertical'))
-                pass
-            #slices.append(Slice(C + Vector(0, D[0].b), 'horizontal'))
+            first = Slice(C + Vector(D[0].a, 0), 'vertical')
+            second = Slice(C + Vector(0, D[0].b), 'horizontal')
+            slices = Instruction(None, first, second)
             return D[0].b, slices
         else:
-            if D[0].b < x:
-                #slices.append(Slice(C + Vector(D[0].b, 0), 'vertical'))
-                pass
-            #slices.append(Slice(C + Vector(0, D[0].a), 'horizontal'))
+            first = Slice(C + Vector(D[0].b, 0), 'vertical')
+            second = Slice(C + Vector(0, D[0].a), 'horizontal')
+            slices = Instruction(None, first, second)
             return D[0].a, slices
     else:
         vertical, v_slices = f_vertical(x, D, C)

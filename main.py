@@ -18,7 +18,5 @@ type44 = [Detail(4, 4)]
 D = type31 * 2 + type21 + type22 + type32
 
 
-length, slices = f(4, D, Vector())
-print(f'Length: {length}')
-for slice in slices:
-    print(slice)
+length, instruction = f(4, D, Vector())
+instruction.report()
