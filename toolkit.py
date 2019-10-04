@@ -35,6 +35,15 @@ class Vector:
         return f'({self.x}, {self.y})'
 
 
+class Slice:
+    def __init__(self, point, direction):
+        self.point = point
+        self.direction = direction
+
+    def __str__(self):
+        return f'Slice at {self.point} in {self.direction} direction.'
+
+
 def diff(lst, sub):
     """
     :param lst: List
@@ -90,11 +99,17 @@ def f_vertical(x, D, C):
     guillotine cut is vertical.
     """
     minimum = None
+    slice = None
     for D1, D2 in R(D):
         for z in range(int(x/2)+1):
-            m = max(f(z, D1, C), f(x - z, D2, C))
+            left = f(z, D1, C)
+            point = C + Vector(z, 0)
+            right = f(x - z, D2, point)
+            m = max(left, right)
             if not minimum or m < minimum:
                 minimum = m
+                slice = Slice(point, 'vertical')
+    print(slice)
     return minimum
 
 
@@ -104,10 +119,16 @@ def f_horizontal(x, D, C):
     guillotine cut is horizontal.
     """
     minimum = None
+    slice = None
     for D1, D2 in R(D):
-        m = f(x, D1, C) + f(x, D2, C)
+        down = f(x, D1, C)
+        point = C + Vector(0, down)
+        up = f(x, D2, point)
+        m = down + up
         if not minimum or m < minimum:
             minimum = m
+            slice = Slice(point, 'horizontal')
+    print(slice)
     return minimum
 
 
