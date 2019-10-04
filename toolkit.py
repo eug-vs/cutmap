@@ -18,6 +18,15 @@ class Detail:
         return str(self)
 
 
+class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __add__(self, other):
+        return Vector(self.x + other.x, self.y + other.y)
+
+        
 def diff(lst, sub):
     """
     :param lst: List
