@@ -1,5 +1,5 @@
 import itertools
-import numpy
+import numpy as np
 
 
 class Detail:
@@ -16,6 +16,47 @@ class Detail:
 
     def __repr__(self):
         return str(self)
+
+    def __mul__(self, other):
+        if type(other) is int:
+            return [self] * other
+
+
+class Kit:
+    def __init__(self, d):
+        types = []
+        for dtype in d:
+            if dtype not in types:
+                types.append(dtype)
+        self.n = len(d)
+        self.t = np.array(types)
+        self.q = np.array([d.count(dtype) for dtype in types])
+
+        # Building pick-map
+        self.map = np.identity(len(self.t), dtype=int)
+        for i in range(1, int(self.n / 2)):
+            last_block = 0
+            cur_block = len(self.t)
+            for j in range(last_block, cur_block):
+                for k in range(last_block, cur_block):
+                    self.map = np.vstack([self.map, self.map[j] + self.map[k]])
+        for i in range(len(self.map)):
+            if (self.map[i] > self.q).any():
+                self.map[i] = np.zeros((1, len(self.t)))
+        self.map = np.unique(self.map, axis=0)
+
+    def split(self, index):
+        key = self.map[index]
+        subset1 = np.dot(self.t, key)
+        subset2 = np.dot(self.t, self.q - key)
+        print(subset1)
+        print(subset2)
+
+    def flat(self):
+        return np.dot(self.t, self.q)
+
+    def __str__(self):
+        return self.flat()
 
 
 class Vector:
