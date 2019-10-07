@@ -76,40 +76,36 @@ class Vector:
         return f'({self.x}, {self.y})'
 
 
-class Slice:
-    def __init__(self, point, direction):
-        self.point = point
-        self.direction = direction
-
-    def __str__(self):
-        return f'{self.direction} slice at {self.point}'
-
-    def __repr__(self):
-        return str(self)
-
-
 class Instruction:
     def __init__(self, slice, first, second):
+        """
+        Slice is a number which represents an offset of the slice.
+        It is positive in horizontal case and negative in vertical.
+        If slice == 0, no slice needed.
+        """
         self.slice = slice
         self.first = first
         self.second = second
-        if self.slice:
-            self.dir1 = 'Bottom' if self.slice.direction == 'horizontal' else 'Left'
-            self.dir2 = 'Up' if self.slice.direction == 'horizontal' else 'Right'
+
+    def slice2str(self, slice):
+        direction = 'Horizontal' if slice > 0 else 'Vertical'
+        return f'{direction} slice at {abs(slice)}'
 
     def report(self, level=0):
+        tab = ' ' * 6
         if self.slice:
-            print('\t' * level + str(self.slice))
+            dir1, dir2 = ('Bottom', 'Up') if self.slice > 0 else ('Left', 'Right')
+            print(tab * level + self.slice2str(self.slice))
 
-            print('\t' * (level + 1) + self.dir1 + ' part:')
+            print(tab * (level + 1) + dir1 + ' part:')
             self.first.report(level=level+2)
 
-            print('\t' * (level + 1) + self.dir2 + ' part:')
+            print(tab * (level + 1) + dir2 + ' part:')
             self.second.report(level=level+2)
         else:
-            print('\t' * level + 'It is a detail!')
-            print('\t' * level + str(self.first))
-            print('\t' * level + str(self.second))
+            print(tab * level + 'It is a detail!')
+            print(tab * level + self.slice2str(self.first))
+            print(tab * level + self.slice2str(self.second))
 
 
 def diff(lst, sub):
@@ -151,7 +147,7 @@ def f_vertical(x, D, C):
             m = max(left, right)
             if not minimum or m < minimum:
                 minimum = m
-                slices = Instruction(Slice(point, 'vertical'), l_slices, r_slices)
+                slices = Instruction(-z, l_slices, r_slices)
     return minimum, slices
 
 
@@ -169,7 +165,7 @@ def f_horizontal(x, D, C):
         m = bottom + top
         if not minimum or m < minimum:
             minimum = m
-            slices = Instruction(Slice(point, 'horizontal'), b_slices, t_slices)
+            slices = Instruction(bottom, b_slices, t_slices)
     return minimum, slices
 
 
@@ -189,13 +185,13 @@ def f(x, D, C):
         return 100000, Instruction(None, None, None)
     elif len(D) == 1:
         if D[0].a <= x:
-            first = Slice(C + Vector(D[0].a, 0), 'vertical')
-            second = Slice(C + Vector(0, D[0].b), 'horizontal')
+            first = -D[0].a
+            second = D[0].b
             slices = Instruction(None, first, second)
             return D[0].b, slices
         else:
-            first = Slice(C + Vector(D[0].b, 0), 'vertical')
-            second = Slice(C + Vector(0, D[0].a), 'horizontal')
+            first = D[0].b
+            second = -D[0].a
             slices = Instruction(None, first, second)
             return D[0].a, slices
     else:
