@@ -20,6 +20,11 @@ class Detail:
     def __mul__(self, other):
         if type(other) is int:
             return [self] * other
+        elif type(other) is bool:
+            return [self] if other else []
+
+    def validate(self, x):
+        return self.a <= x
 
 
 class Kit:
@@ -41,20 +46,40 @@ class Kit:
                 for k in range(last_block, cur_block):
                     self.map = np.vstack([self.map, self.map[j] + self.map[k]])
         for i in range(len(self.map)):
-            if (self.map[i] > self.q).any():
+            if np.any(self.map[i] > self.q):
                 self.map[i] = np.zeros((1, len(self.t)))
         self.map = np.unique(self.map, axis=0)
 
-    def split(self, index):
-        key = self.map[index]
-        subset1 = np.dot(self.t, key)
-        subset2 = np.dot(self.t, self.q - key)
-        print(subset1)
-        print(subset2)
+    def validate_index(self, index):
+        if index not in self.map or np.all(index == 0):
+            index = self.q - index
+        return index
 
-    def iterate(self):
+    def iterate(self, index):
+        key = self.validate_index(index)
         for row in self.map:
-            yield row, self.q - row
+            if np.any(row):
+                if np.any(row - key) and np.any(self.q - row - key):
+                    if np.all(row <= key):
+                        yield row, key - row
+
+    def validate_detail(self, index, x):
+        key = self.validate_index(index)
+        uniques = key != 0
+        types = np.dot(self.t, uniques)
+        for dtype in types:
+            if not dtype.validate(x):
+                return False
+        return True
+
+    def is_single(self, index):
+        key = self.validate_index(index)
+        total = 0
+        for item in key:
+            total += item
+        if total != 1:
+            return False
+        return np.dot(self.t, key)
 
     def flat(self):
         return np.dot(self.t, self.q)
@@ -112,42 +137,18 @@ class Instruction:
             print(tab * level + self.slice2str(self.second))
 
 
-def diff(lst, sub):
-    """
-    :param lst: List
-    :param sub: It's sublist
-    :return: Their exact difference
-    """
-    result = []
-    for i in lst:
-        if i not in result:
-            for j in range(lst.count(i) - sub.count(i)):
-                result.append(i)
-    return result
-
-
-def R(D):
-    """
-    :param D: Collection of Details.
-    :return: Generator of all possible splits into 2 sub-collections.
-    """
-    for left_size in range(1, int(len(D) / 2) + 1):
-        for i in itertools.combinations(D, left_size):
-            yield i, diff(D, i)
-
-
-def f_vertical(x, D, C):
+def f_vertical(x, kit, index, C):
     """
     This is the same as function f(x, D), but it assumes that the first
     guillotine cut is vertical.
     """
     minimum = None
     slices = None
-    for D1, D2 in R(D):
+    for D1, D2 in kit.iterate(index):
         for z in range(int(x/2)+1):
-            left, l_slices = f(z, D1, C)
+            left, l_slices = f(z, kit, D1, C)
             point = C + Vector(z, 0)
-            right, r_slices = f(x - z, D2, point)
+            right, r_slices = f(x - z, kit, D2, point)
             m = max(left, right)
             if not minimum or m < minimum:
                 minimum = m
@@ -155,17 +156,17 @@ def f_vertical(x, D, C):
     return minimum, slices
 
 
-def f_horizontal(x, D, C):
+def f_horizontal(x, kit, index, C):
     """
     This is the same as function f(x, D), but it assumes that the first
     guillotine cut is horizontal.
     """
     minimum = None
     slices = None
-    for D1, D2 in R(D):
-        bottom, b_slices = f(x, D1, C)
+    for D1, D2 in kit.iterate(index):
+        bottom, b_slices = f(x, kit, D1, C)
         point = C + Vector(0, bottom)
-        top, t_slices = f(x, D2, point)
+        top, t_slices = f(x, kit, D2, point)
         m = bottom + top
         if not minimum or m < minimum:
             minimum = m
@@ -173,7 +174,7 @@ def f_horizontal(x, D, C):
     return minimum, slices
 
 
-def f(x, D, C):
+def f(x, kit, index, C):
     """
     :param x: Width of the strip.
     :param D: Collection of Details.
@@ -181,26 +182,24 @@ def f(x, D, C):
     :return: Minimum height (y) of the strip of width x, which is enough
     for guillotine allocation for collection D.
     """
-    max_b = 0
-    for detail in D:
-        if detail.b > max_b:
-            max_b = detail.b
-    if max_b > x:
+    if not kit.validate_detail(index, x):
         return 100000, Instruction(None, None, None)
-    elif len(D) == 1:
-        if D[0].a <= x:
-            first = -D[0].a
-            second = D[0].b
+    single = kit.is_single(index)
+    if single:
+        single = single[0]
+        if single.a <= x:
+            first = -single.a
+            second = single.b
             slices = Instruction(None, first, second)
-            return D[0].b, slices
+            return single.b, slices
         else:
-            first = D[0].b
-            second = -D[0].a
+            first = single.b
+            second = -single.a
             slices = Instruction(None, first, second)
-            return D[0].a, slices
+            return single.a, slices
     else:
-        vertical, v_slices = f_vertical(x, D, C)
-        horizontal, h_slices = f_horizontal(x, D, C)
+        vertical, v_slices = f_vertical(x, kit, index, C)
+        horizontal, h_slices = f_horizontal(x, kit, index, C)
         # Finding minimum
         if vertical < horizontal:
             return vertical, v_slices

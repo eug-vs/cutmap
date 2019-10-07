@@ -17,6 +17,8 @@ type44 = [Detail(4, 4)]
 
 D = type31 * 2 + type21 + type22 + type32
 
+k = Kit(D)
 
-length, instruction = f(4, D, Vector())
+
+length, instruction = f(4, k, 0, Vector())
 instruction.report()
