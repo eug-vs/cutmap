@@ -52,6 +52,10 @@ class Kit:
         print(subset1)
         print(subset2)
 
+    def iterate(self):
+        for row in self.map:
+            yield row, self.q - row
+
     def flat(self):
         return np.dot(self.t, self.q)
 
