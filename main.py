@@ -1,4 +1,5 @@
 from toolkit import *
+import time
 
 type11 = [Detail(1, 1)]
 type21 = [Detail(2, 1)]
@@ -16,9 +17,9 @@ type44 = [Detail(4, 4)]
 
 
 D = type31 * 2 + type21 + type22 + type32
-
 k = Kit(D)
 
-
+t = time.time()
 length, instruction = f(4, k, 0, Vector())
+print(f'Finished in {time.time() - t} seconds.')
 instruction.report()
