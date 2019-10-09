@@ -24,7 +24,7 @@ class Detail:
             return [self] if other else []
 
     def validate(self, x):
-        return self.a <= x
+        return self.b <= x
 
 
 class Kit:
