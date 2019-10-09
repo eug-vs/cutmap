@@ -152,6 +152,8 @@ def f_vertical(x, kit, index, C):
     for D1, D2 in kit.iterate(index):
         for z in range(int(x/2)+1):
             left, l_slices = f(z, kit, D1, C)
+            if minimum and left >= minimum:
+                continue
             point = C + Vector(z, 0)
             right, r_slices = f(x - z, kit, D2, point)
             m = max(left, right)
