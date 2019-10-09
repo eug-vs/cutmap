@@ -38,17 +38,21 @@ class Kit:
         self.q = np.array([d.count(dtype) for dtype in types])
 
         # Building pick-map
-        self.map = np.identity(len(self.t), dtype=int)
-        for i in range(1, int(self.n / 2)):
-            last_block = 0
-            cur_block = len(self.t)
-            for j in range(last_block, cur_block):
-                for k in range(last_block, cur_block):
-                    self.map = np.vstack([self.map, self.map[j] + self.map[k]])
-        for i in range(len(self.map)):
-            if np.any(self.map[i] > self.q):
-                self.map[i] = np.zeros((1, len(self.t)))
-        self.map = np.unique(self.map, axis=0)
+        unit_matrix = np.identity(len(self.t), dtype=int)
+        self.map = np.zeros((1, len(self.t)), dtype=int)
+        last_pos = 0
+        size = 1
+        for sum_block in range(1, self.n):
+            last_block = self.map[last_pos:]
+            last_pos = len(self.map)
+            for unit_row in unit_matrix:
+                for row in last_block:
+                    new_row = row + unit_row
+                    if np.all(new_row <= self.q):
+                        self.map = np.vstack([self.map, new_row])
+        unique_idx = np.unique(self.map, axis=0, return_index=True)[1]
+        self.map = self.map[np.sort(unique_idx)]
+        self.map = np.vstack([self.map, self.q])
 
     def validate_index(self, index):
         if index not in self.map or np.all(index == 0):
@@ -57,7 +61,8 @@ class Kit:
 
     def iterate(self, index):
         key = self.validate_index(index)
-        for row in self.map:
+        lower_half = self.map[:int(len(self.map) / 2)]
+        for row in lower_half:
             if np.any(row):
                 if np.any(row - key) and np.any(self.q - row - key):
                     if np.all(row <= key):
