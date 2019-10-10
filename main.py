@@ -1,6 +1,5 @@
-from time import time
-from components import Kit, Detail
-from toolkit import *
+from components import Detail
+from core import process
 
 
 type11 = [Detail(1, 1)]
@@ -21,9 +20,4 @@ type44 = [Detail(4, 4)]
 D = type31 * 2 + type21 + type22 + type32
 w = 4
 
-k = Kit(D)
-print(k)
-t = time()
-length, instruction = f(w, k)
-instruction.report()
-print(f'{k.n} details successfully packed in {time() - t} seconds. \nTotal roll length: {length}.')
+process(w, D)

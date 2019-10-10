@@ -1,3 +1,7 @@
+from time import time
+from components import Kit
+
+
 class Vector:
     def __init__(self, *args):
         if args:
@@ -129,3 +133,13 @@ def f(w, kit, index=0, point=Vector(0, 0)):
             return vertical, v_cuts
         else:
             return horizontal, h_cuts
+
+
+def process(width, details):
+    """Solve the Guillotine problem and generate report"""
+    k = Kit(details)
+    print(k)
+    t = time()
+    length, instruction = f(width, k)
+    instruction.report()
+    print(f'{k.n} details successfully packed in {time() - t} seconds. \nTotal roll length: {length}.')
