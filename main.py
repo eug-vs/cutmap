@@ -1,5 +1,7 @@
+from time import time
+from components import Kit, Detail
 from toolkit import *
-import time
+
 
 type11 = [Detail(1, 1)]
 type21 = [Detail(2, 1)]
@@ -17,10 +19,11 @@ type44 = [Detail(4, 4)]
 
 
 D = type31 * 2 + type21 + type22 + type32
-k = Kit(D)
+w = 4
 
+k = Kit(D)
 print(k)
-t = time.time()
-length, instruction = f(4, k, 0, Vector())
+t = time()
+length, instruction = f(w, k)
 instruction.report()
-print(f'{k.n} details successfully packed in {time.time() - t} seconds. \nTotal roll length: {length}.')
+print(f'{k.n} details successfully packed in {time() - t} seconds. \nTotal roll length: {length}.')
