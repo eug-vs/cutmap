@@ -17,9 +17,9 @@ class Detail:
         return str(self)
 
     def __mul__(self, other):
-        if type(other) is int:
+        if isinstance(other, int):
             return [self] * other
-        elif type(other) is bool:
+        elif isinstance(other, bool):
             return [self] if other else []
 
     def validate(self, width):
