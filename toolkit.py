@@ -26,6 +26,9 @@ class Detail:
     def validate(self, x):
         return self.b <= x
 
+    def area(self):
+        return self.a * self.b
+
 
 class Kit:
     def __init__(self, d):
@@ -67,6 +70,26 @@ class Kit:
                 if np.any(row - key) and np.any(self.q - row - key):
                     if np.all(row <= key):
                         yield row, key - row
+
+    def index_area(self, index):
+        key = self.validate_index(index)
+        details = np.dot(self.t, key)
+        area = 0
+        for detail in details:
+            area += detail.area()
+        return area
+
+    def index_sizes(self, index, x):
+        key = self.validate_index(index)
+        details = np.dot(self.t, key)
+        sizes = []
+        for detail in details:
+            if detail.a <= x / 2:
+                sizes.append(detail.a)
+            if detail.b <= x / 2:
+                sizes.append(detail.b)
+        sizes = np.unique(sizes)
+        return sizes
 
     def validate_detail(self, index, x):
         key = self.validate_index(index)
@@ -150,7 +173,9 @@ def f_vertical(x, kit, index, C):
     minimum = None
     slices = None
     for D1, D2 in kit.iterate(index):
-        for z in range(int(x/2)+1):
+        if minimum and (kit.index_area(D1) > minimum * x or kit.index_area(D2) > minimum * x):
+            continue
+        for z in kit.index_sizes(index, x):
             left, l_slices = f(z, kit, D1, C)
             if minimum and left >= minimum:
                 continue
@@ -160,6 +185,10 @@ def f_vertical(x, kit, index, C):
             if not minimum or m < minimum:
                 minimum = m
                 slices = Instruction(-z, l_slices, r_slices)
+            if minimum and minimum == kit.index_area(index):
+                break
+    if not minimum:
+        return 100000, Instruction(None, None, None)
     return minimum, slices
 
 
@@ -172,12 +201,16 @@ def f_horizontal(x, kit, index, C):
     slices = None
     for D1, D2 in kit.iterate(index):
         bottom, b_slices = f(x, kit, D1, C)
+        if minimum and bottom >= minimum:
+            continue
         point = C + Vector(0, bottom)
         top, t_slices = f(x, kit, D2, point)
         m = bottom + top
         if not minimum or m < minimum:
             minimum = m
             slices = Instruction(bottom, b_slices, t_slices)
+        if minimum and minimum == kit.index_area(index):
+            break
     return minimum, slices
 
 
