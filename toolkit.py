@@ -113,7 +113,7 @@ class Kit:
         return np.dot(self.t, self.q)
 
     def __str__(self):
-        return self.flat()
+        return f'Detail kit:\n\tDetail types: {self.t}\n\tQuantities:   {self.q}'
 
 
 class Vector:
@@ -149,20 +149,22 @@ class Instruction:
         return f'{direction} slice at {abs(slice)}'
 
     def report(self, level=0):
+        if not level:
+            print('Cutting map:')
         tab = ' ' * 6
         if self.slice:
             dir1, dir2 = ('Bottom', 'Up') if self.slice > 0 else ('Left', 'Right')
-            print(tab * level + self.slice2str(self.slice))
+            print(tab * (level + 1) + self.slice2str(self.slice))
 
-            print(tab * (level + 1) + dir1 + ' part:')
+            print(tab * (level + 2) + dir1 + ' part:')
             self.first.report(level=level+2)
 
-            print(tab * (level + 1) + dir2 + ' part:')
+            print(tab * (level + 2) + dir2 + ' part:')
             self.second.report(level=level+2)
         else:
-            print(tab * level + 'It is a detail!')
-            print(tab * level + self.slice2str(self.first))
-            print(tab * level + self.slice2str(self.second))
+            print(tab * (level + 1) + 'It is a detail!')
+            print(tab * (level + 1) + self.slice2str(self.first))
+            print(tab * (level + 1) + self.slice2str(self.second))
 
 
 def f_vertical(x, kit, index, C):
