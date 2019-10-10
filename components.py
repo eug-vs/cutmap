@@ -105,7 +105,7 @@ class Kit:
             total += item
         if total != 1:
             return False
-        return np.dot(self.t, key)
+        return np.dot(self.t, key)[0]
 
     def __str__(self):
         return f'Detail kit:\n\tDetail types: {self.t}\n\tQuantities:   {self.q}'

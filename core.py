@@ -115,7 +115,6 @@ def f(w, kit, index=0, point=Vector(0, 0)):
         return 100000, Instruction(None, None, None)
     single = kit.is_single(index)
     if single:
-        single = single[0]
         if single.a <= w:
             first = -single.a
             second = single.b
@@ -127,10 +126,10 @@ def f(w, kit, index=0, point=Vector(0, 0)):
             cuts = Instruction(None, first, second)
             return single.a, cuts
     else:
-        horizontal, h_cuts = f_horizontal(w, kit, index, point)
-        if horizontal * w == kit.index_area(index):
-            return horizontal, h_cuts
         vertical, v_cuts = f_vertical(w, kit, index, point)
+        if vertical * w == kit.index_area(index):
+            return vertical, v_cuts
+        horizontal, h_cuts = f_horizontal(w, kit, index, point)
         if vertical < horizontal:
             return vertical, v_cuts
         else:
